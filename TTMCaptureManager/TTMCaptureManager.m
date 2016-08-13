@@ -52,7 +52,7 @@
     
         currentOutputMode = outputMode;
         
-        referenceOrientation = (AVCaptureVideoOrientation)UIDeviceOrientationPortrait;
+        referenceOrientation = (AVCaptureVideoOrientation)UIDeviceOrientationLandscapeLeft;
 
         NSError *error;
         
