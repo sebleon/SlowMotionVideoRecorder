@@ -30,6 +30,9 @@
 @property (nonatomic, weak) IBOutlet UIButton *recBtn;
 @property (nonatomic, weak) IBOutlet UIImageView *outerImageView;
 @property (nonatomic, weak) IBOutlet UIView *previewView;
+
+@property BOOL recentTap;
+
 @end
 
 
@@ -67,6 +70,12 @@
     self.outerImage1 = [UIImage imageNamed:@"outer1"];
     self.outerImage2 = [UIImage imageNamed:@"outer2"];
     self.outerImageView.image = self.outerImage1;
+
+    [[NSNotificationCenter defaultCenter]
+     addObserver:self
+     selector:@selector(volumeChanged:)
+     name:@"AVSystemController_SystemVolumeDidChangeNotification"
+     object:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -78,7 +87,6 @@
     
     [self.captureManager updateOrientationWithPreviewView:self.previewView];
 }
-
 
 // =============================================================================
 #pragma mark - Gesture Handler
@@ -169,6 +177,28 @@
 }
 
 
+# pragma mark - Button Action
+
+- (void)volumeChanged:(NSNotification *)notification
+{
+    if (!self.recentTap) {
+        self.recentTap = YES;
+        [self performSelector:@selector(resetTap)
+                   withObject:nil
+                   afterDelay:0.5];
+        return;
+    }
+    if (!self.captureManager.isRecording) {
+        [self startRecording];
+        NSLog(@"got a double tap");
+    }
+}
+
+- (void)resetTap
+{
+    self.recentTap = NO;
+}
+
 // =============================================================================
 #pragma mark - IBAction
 
@@ -176,30 +206,36 @@
     
     // REC START
     if (!self.captureManager.isRecording) {
-
-        // change UI
-        [self.recBtn setImage:self.recStopImage
-                     forState:UIControlStateNormal];
-        self.fpsControl.enabled = NO;
-        
-        // timer start
-        startTime = [[NSDate date] timeIntervalSince1970];
-        self.timer = [NSTimer scheduledTimerWithTimeInterval:0.01
-                                                      target:self
-                                                    selector:@selector(timerHandler:)
-                                                    userInfo:nil
-                                                     repeats:YES];
-
-        [self.captureManager startRecording];
-        [self performSelector:@selector(stopRecording)
-                   withObject:nil
-                   afterDelay:5.0];
+        [self startRecording];
     }
     // REC STOP
     else {
         [self stopRecording];
     }
 }
+
+- (void)startRecording
+{
+    // change UI
+    [self.recBtn setImage:self.recStopImage
+                 forState:UIControlStateNormal];
+    self.fpsControl.enabled = NO;
+    
+    // timer start
+    startTime = [[NSDate date] timeIntervalSince1970];
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:0.01
+                                                  target:self
+                                                selector:@selector(timerHandler:)
+                                                userInfo:nil
+                                                 repeats:YES];
+    
+    [self.captureManager startRecording];
+    float recordingLength = 3.0;
+    [self performSelector:@selector(stopRecording)
+               withObject:nil
+               afterDelay:recordingLength];
+}
+
 - (void)stopRecording
 {
     isNeededToSave = YES;
