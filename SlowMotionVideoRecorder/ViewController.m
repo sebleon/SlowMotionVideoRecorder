@@ -191,21 +191,27 @@
                                                      repeats:YES];
 
         [self.captureManager startRecording];
+        [self performSelector:@selector(stopRecording)
+                   withObject:nil
+                   afterDelay:5.0];
     }
     // REC STOP
     else {
-
-        isNeededToSave = YES;
-        [self.captureManager stopRecording];
-        
-        [self.timer invalidate];
-        self.timer = nil;
-        
-        // change UI
-        [self.recBtn setImage:self.recStartImage
-                     forState:UIControlStateNormal];
-        self.fpsControl.enabled = YES;
+        [self stopRecording];
     }
+}
+- (void)stopRecording
+{
+    isNeededToSave = YES;
+    [self.captureManager stopRecording];
+
+    [self.timer invalidate];
+    self.timer = nil;
+
+    // change UI
+    [self.recBtn setImage:self.recStartImage
+                 forState:UIControlStateNormal];
+    self.fpsControl.enabled = YES;
 }
 
 //- (IBAction)retakeButtonTapped:(id)sender {
